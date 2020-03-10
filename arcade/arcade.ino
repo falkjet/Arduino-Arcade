@@ -39,7 +39,7 @@ public:
     this->y = y;
     this->width = width;
     this->height = height;
-    this->health = 0;
+    this->health = health;
   }
   void damage(int amount) {
     if (amount > this->health) {
@@ -90,14 +90,12 @@ int breakOut() {
   Vec2 ballPos = Vec2(63, 50);
   Vec2 ballVel = Vec2(1, 2);
   
-  delay(100);
-
   while (true) //game loop
   {
     display.clearDisplay();
     int aliveBlocks = 0;
     for (Block block: blocks) {
-      if (block.height != 0){
+      if (block.health != 0){
         display.drawRect(block.x+1, block.y+1 , block.width-2, block.height-2, SSD1306_WHITE);
       }
     }
@@ -126,6 +124,19 @@ int breakOut() {
     }
 
     //ballPos.x += ballVel.x; ballPos.y += ballVel.y;
+
+    for (const Block& block: blocks) {
+      // Serial.print(block.health); Serial.println(0);
+      if (block.health != 0) {
+        // Serial.print(block.health); Serial.println(0);
+        if (ballPos.y < block.y + block.height + 2 && ballPos.x < block.x + block.width + 3 && ballPos.x > block.x - 3) {
+          ballVel.y = abs(ballVel.y);
+          block.damage(1);
+          // Serial.println("UP");
+        }
+        // Serial.println("BLOCK");
+      }
+    }
 
     Serial.print("("); Serial.print(ballPos.x); Serial.print(", "); Serial.print(ballPos.y); Serial.print("), ");
     Serial.print("("); Serial.print(ballVel.x); Serial.print(", "); Serial.print(ballVel.y); Serial.println(")");
