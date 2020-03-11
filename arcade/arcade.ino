@@ -79,6 +79,41 @@ void setup() {
 
 void loop() {
   int result = breakOut();
+
+  display.clearDisplay();display.setTextSize(2); // Draw 2X-scale text
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(10, 0);
+
+  switch (result)
+  {
+  case 0:
+    display.println(F("You lost!"));
+    break;
+  case 1:
+    display.println(F("You won!"));
+  default:
+    break;
+  }
+  display.display();
+
+  delay(500);
+
+  while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
+  {
+    delay(10);
+  }
+
+  while (!((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH)))
+  {
+    delay(10);
+  }
+
+  while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
+  {
+    delay(10);
+  }
+  
+
 }
 
 int breakOut() {
@@ -98,7 +133,7 @@ int breakOut() {
   // }
 
   Vec2 ballPos = Vec2(63, 50);
-  Vec2 ballVel = Vec2(1, 2);
+  Vec2 ballVel = Vec2(1, -2);
   
   while (true) //game loop
   {
@@ -177,12 +212,13 @@ int breakOut() {
 
 
     if (ballPos.y + 4 > padY) {
-      if (ballPos.x > padPos && ballPos.x < padPos + padWidth) {
+      if (ballPos.x > padPos - 2 && ballPos.x < 2+ padPos + padWidth) {
         ballVel.y = -abs(ballVel.y);
+        ballVel.x = -(padPos + padWidth/2 -ballPos.x)/4;
       }
     }
 
-    if (ballPos.y > padY) {
+    if (ballPos.y > padY +4) {
       Serial.println("you lost");
       return 0;
     }
@@ -192,7 +228,7 @@ int breakOut() {
     digitalWrite(LED_BUILTIN, buttonState == HIGH);
 
     if (buttonState == HIGH) {
-      padPos -= 2;
+      padPos -= 3;
     }
 
     buttonState = digitalRead(rightButtonPin);
@@ -200,7 +236,7 @@ int breakOut() {
     digitalWrite(LED_BUILTIN, buttonState == HIGH);
 
     if (buttonState == HIGH) {
-      padPos += 2;
+      padPos += 3;
     }
 
 
