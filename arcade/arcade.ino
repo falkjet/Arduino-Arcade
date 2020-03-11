@@ -78,6 +78,22 @@ void setup() {
 }
 
 void loop() {
+
+  while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
+  {
+    delay(10);
+  }
+
+  while (!((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH)))
+  {
+    delay(10);
+  }
+
+  while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
+  {
+    delay(10);
+  }
+
   int result = breakOut();
 
   display.clearDisplay();display.setTextSize(2); // Draw 2X-scale text
@@ -97,21 +113,6 @@ void loop() {
   display.display();
 
   delay(500);
-
-  while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
-  {
-    delay(10);
-  }
-
-  while (!((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH)))
-  {
-    delay(10);
-  }
-
-  while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
-  {
-    delay(10);
-  }
   
 
 }
