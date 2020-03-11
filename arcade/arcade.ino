@@ -10,6 +10,12 @@
 #define OLED_RESET     4 
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 
+const int leftButtonPin = 2;
+const int rightButtonPin = 3; 
+
+
+const int padY = 60;
+const int padWidth = 20;  
 
 class Vec2 {
 public:
@@ -58,6 +64,9 @@ public:
 
 void setup() {
   Serial.begin(9600);
+  pinMode(leftButtonPin, INPUT);
+  pinMode(rightButtonPin, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("display.begin failed!"));
@@ -66,11 +75,10 @@ void setup() {
   
   display.clearDisplay();
   display.display();
-
-  int result = breakOut();
 }
 
 void loop() {
+  int result = breakOut();
 }
 
 int breakOut() {
@@ -82,6 +90,8 @@ int breakOut() {
     Block(0, 8, 16, 8, 1), Block(16, 8, 16, 8, 1), Block(32, 8, 16, 8, 1), Block(16*3, 8, 16, 8, 1), Block(64, 8, 16, 8, 1), Block(16*5, 8, 16, 8, 1), Block(16*6, 8, 16, 8, 1), Block(16*7, 8, 16, 8, 1)
   };
   
+
+  int padPos = 63;
   // // draw blocks
   // for (Block block: blocks) {
   //   display.drawRect(block.x+1, block.y+1 , block.width-2, block.height-2, SSD1306_WHITE);
@@ -102,12 +112,14 @@ int breakOut() {
 
     display.drawCircle(ballPos.x, ballPos.y, 2, SSD1306_WHITE);
 
+    display.drawLine(padPos, padY, padPos + padWidth, padY, SSD1306_WHITE);
+
     ballPos = ballPos + ballVel;
 
-    if (ballPos.y > 60) {
-      ballVel.y = -abs(ballVel.y);
-      Serial.println("UP");
-    }
+    // if (ballPos.y > 60) {
+    //   ballVel.y = -abs(ballVel.y);
+    //   Serial.println("UP");
+    // }
     
     if (ballPos.y < 4) {
       ballVel.y = abs(ballVel.y);
@@ -125,21 +137,75 @@ int breakOut() {
 
     //ballPos.x += ballVel.x; ballPos.y += ballVel.y;
 
+    int numBlocksAlive = 0;
+
     for (const Block& block: blocks) {
       // Serial.print(block.health); Serial.println(0);
       if (block.health != 0) {
+        numBlocksAlive++;
         // Serial.print(block.health); Serial.println(0);
-        if (ballPos.y < block.y + block.height + 2 && ballPos.x < block.x + block.width + 3 && ballPos.x > block.x - 3) {
-          ballVel.y = abs(ballVel.y);
+        int inside_bottom = block.y + block.height + 2 - ballPos.y;
+        int inside_top = block.height - inside_bottom + 4;
+        int inside_right = block.x + block.width + 2 - ballPos.x;
+        int inside_left = block.width - inside_right + 4;
+        // int inside_left = 
+        if (inside_bottom > 0 && inside_right > 0 && inside_left > 0 && inside_top > 0) {
           block.damage(1);
-          // Serial.println("UP");
+          if (min(inside_top, inside_top) > min(inside_left, inside_right)){
+            if (inside_top < inside_top) {
+              ballVel.y = -abs(ballVel.y);
+            } else {
+              ballVel.y = abs(ballVel.y);
+            }
+            
+          } else {
+            if (inside_left < inside_right) {
+              ballVel.x = -abs(ballVel.x);
+            } else {
+              ballVel.x = abs(ballVel.x);
+            }
+          }
         }
         // Serial.println("BLOCK");
       }
     }
 
-    Serial.print("("); Serial.print(ballPos.x); Serial.print(", "); Serial.print(ballPos.y); Serial.print("), ");
-    Serial.print("("); Serial.print(ballVel.x); Serial.print(", "); Serial.print(ballVel.y); Serial.println(")");
+    if (numBlocksAlive == 0) {
+      Serial.println("you won");
+      return 1;
+    }
+
+
+    if (ballPos.y + 4 > padY) {
+      if (ballPos.x > padPos && ballPos.x < padPos + padWidth) {
+        ballVel.y = -abs(ballVel.y);
+      }
+    }
+
+    if (ballPos.y > padY) {
+      Serial.println("you lost");
+      return 0;
+    }
+
+    int buttonState = digitalRead(leftButtonPin);
+
+    digitalWrite(LED_BUILTIN, buttonState == HIGH);
+
+    if (buttonState == HIGH) {
+      padPos -= 2;
+    }
+
+    buttonState = digitalRead(rightButtonPin);
+
+    digitalWrite(LED_BUILTIN, buttonState == HIGH);
+
+    if (buttonState == HIGH) {
+      padPos += 2;
+    }
+
+
+    // Serial.print("("); Serial.print(ballPos.x); Serial.print(", "); Serial.print(ballPos.y); Serial.print("), ");
+    // Serial.print("("); Serial.print(ballVel.x); Serial.print(", "); Serial.print(ballVel.y); Serial.println(")");
     display.display();
   }
 
