@@ -113,33 +113,153 @@ int waitForAnyKey() {
   return pressedButton;
 }
 
+int menu(String game_names[]) {
+  int selected = 0;
+  int n_games = 3;
+  
+  int offset = 0;
+  int anim_speed = 3;
+
+  bool right_button_state = false;
+  bool last_right_button_state = false;
+  bool left_button_state = false;
+  bool last_left_button_state = false;
+  
+  while (true) {
+    display.clearDisplay();
+
+    right_button_state = digitalRead(rightButtonPin);
+    left_button_state = digitalRead(leftButtonPin);
+
+    if (right_button_state && !last_right_button_state) {
+      selected += 1;
+      offset += 24;
+      if (selected >= n_games) {
+        selected = 0;
+        offset = -n_games * 24;
+        anim_speed = 3 * n_games;
+      }
+    }
+
+    if (left_button_state && !last_left_button_state) {
+      return selected;
+    }
+
+    if (offset > 0) {
+      offset -= anim_speed;
+    }
+    if (offset < 0) {
+      offset += anim_speed;
+    }
+    if (abs(offset) < abs(anim_speed)) {
+      offset = 0;
+    }
+    if (offset == 0) {
+      anim_speed = 3;
+    }
+
+    last_left_button_state = left_button_state;
+    last_right_button_state = right_button_state;
+
+    for (int i = 0; i < n_games; i++) {
+      int game_off = i - selected;
+      int rect_size = 12;
+      int y_offset = 2;
+      
+      if (i == selected) {
+        rect_size = 16;
+        y_offset = 0;
+      }
+
+      int rect_x = DISPLAY_WIDTH / 2 - rect_size / 2 + game_off * 24 + offset;
+      int rect_y = DISPLAY_HEIGHT - 20 + y_offset;
+
+      display.drawRect(rect_x, rect_y, rect_size, rect_size, SSD1306_WHITE);
+
+      if (i == selected) {
+        display.fillRect(rect_x + 3, rect_y + 3, rect_size-6, rect_size-6, SSD1306_WHITE);
+
+        int16_t  x1, y1;
+        uint16_t w, h;
+         
+        display.getTextBounds(game_names[selected], 10, 0, &x1, &y1, &w, &h);
+
+        display.setTextSize(2); // Draw 2X-scale text
+        display.setTextColor(SSD1306_WHITE);
+        display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 0);
+        display.print(game_names[selected]);
+      }
+    }
+
+    display.display();
+  }
+}
+
 void loop() {
+  Serial.println("AAAAA");
+
+  String game_names[] = {"Snake", "Breakout", "Dino"};
+
+  int game_id = menu(game_names);
+
   int result;
-  if (waitForAnyKey() == 0) {
-    result = breakOut();
-  } else {
-    result = snake();
+  switch (game_id) {
+    case 0:
+      result = snake();
+      break;
+    case 1:
+      result = breakout();
+      break;
+    case 2:
+      break;
   }
 
+  Serial.print("RESULT: ");
+  Serial.println(result);
+
   display.clearDisplay();
-  display.setTextSize(2); // Draw 2X-scale text
+  
+  display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(10, 0);
 
-  switch (result)
-  {
-  case 0:
-    display.println(F("You lost!"));
-    break;
-  case 1:
+  int score;
+
+  if (result == -1) {
     display.println(F("You won!"));
-  default:
-  
-    break;
+  } else {
+    display.println(F("You lost!"));
+
+    if (result == 0) {
+      score = -1;
+    } else {
+      score = result;
+    }
   }
+
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+
+  int16_t  x1, y1;
+  uint16_t w, h;
+
+  display.getTextBounds("Press any key", 0, 0, &x1, &y1, &w, &h);
+  
+  display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 50);
+  display.print("Press any key");
+
+  if (score != -1) {
+    display.getTextBounds("Score: 000", 0, 0, &x1, &y1, &w, &h);
+    display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 20);
+    display.print("Score: ");
+    display.print(score);
+  }
+
   display.display();
 
   delay(500);
+
+  waitForAnyKey();
 }
 
 int snake() {
@@ -162,6 +282,8 @@ int snake() {
 
   bool leftButtonPressed = false;
   bool rightButtonPressed = false;
+
+  int food_eaten = 0;
 
   while (true) {
     for (int n = 0; n < SNAKE_GAME_SPEED; n++) {
@@ -195,22 +317,25 @@ int snake() {
     snake[0].x = (snake[0].x + 16) % 16;
     snake[0].y = (snake[0].y + 8) % 8;
 
-    if (snake[0] == food) {
-      food.x = random(0, 15);
-      food.y = random(0, 7);
-
-      for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
-        if (snake[i].x == -1) {
-          snake[i].x = snake[i - 1].x;
-          snake[i].y = snake[i - 1].y;
-          break;
+    for (int v = 0; v < SNAKE_MAX_LENGTH; v++) {
+      if (snake[v] == food) {
+        food_eaten += 1;
+        food.x = random(0, 15);
+        food.y = random(0, 7);
+  
+        for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
+          if (snake[i].x == -1) {
+            snake[i].x = snake[i - 1].x;
+            snake[i].y = snake[i - 1].y;
+            break;
+          }
         }
       }
     }
 
     for (int i = 1; i < SNAKE_MAX_LENGTH; i++) {
       if (snake[i] == snake[0]) {
-        return 0;
+        return food_eaten;
       }
     }
 
@@ -227,7 +352,7 @@ int snake() {
   }
 }
 
-int breakOut() {
+int breakout() {
   display.clearDisplay();
   display.display();
 
@@ -318,7 +443,7 @@ int breakOut() {
 
     if (numBlocksAlive == 0) {
       Serial.println("you won");
-      return 1;
+      return -1;
     }
 
 
@@ -331,7 +456,7 @@ int breakOut() {
 
     if (ballPos.y > padY +4) {
       Serial.println("you lost");
-      return 0;
+      return (sizeof(blocks) / sizeof(blocks[0])) - numBlocksAlive;
     }
 
     int buttonState = digitalRead(leftButtonPin);
