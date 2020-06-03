@@ -7,6 +7,10 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
+#define SNAKE_MAX_LENGTH 16
+#define SNAKE_INIT_LENGTH 4
+#define SNAKE_GAME_SPEED 20
+
 #define OLED_RESET     4 
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 
@@ -23,12 +27,23 @@ public:
   int y;
   Vec2(int x = 0, int y = 0) {
     this->x = x;
-    this-> y = y;
+    this->y = y;
   }
 
   Vec2 operator+(Vec2 const &obj) {
     Vec2 res(this->x + obj.x, this->y + obj.y);
     return res;
+  }
+
+  bool operator==(Vec2 const &obj) {
+    return (obj.x == this->x) && (obj.y == this->y);
+  }
+
+  Vec2 rotate90() {
+    return Vec2(-(this->y), this->x);
+  }
+  Vec2 rotateNegative90() {
+    return Vec2(this->y, -(this->x));
   }
 };
 
@@ -64,6 +79,7 @@ public:
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("Serial started");
   pinMode(leftButtonPin, INPUT);
   pinMode(rightButtonPin, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -77,8 +93,7 @@ void setup() {
   display.display();
 }
 
-void loop() {
-
+int waitForAnyKey() {
   while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
   {
     delay(10);
@@ -89,14 +104,25 @@ void loop() {
     delay(10);
   }
 
+  int pressedButton = (int)(digitalRead(leftButtonPin) == HIGH);
+
   while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
   {
     delay(10);
   }
+  return pressedButton;
+}
 
-  int result = breakOut();
+void loop() {
+  int result;
+  if (waitForAnyKey() == 0) {
+    result = breakOut();
+  } else {
+    result = snake();
+  }
 
-  display.clearDisplay();display.setTextSize(2); // Draw 2X-scale text
+  display.clearDisplay();
+  display.setTextSize(2); // Draw 2X-scale text
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(10, 0);
 
@@ -108,13 +134,97 @@ void loop() {
   case 1:
     display.println(F("You won!"));
   default:
+  
     break;
   }
   display.display();
 
   delay(500);
-  
+}
 
+int snake() {
+  Vec2 food = Vec2(6, 4);
+
+  Vec2 snake[SNAKE_MAX_LENGTH];
+
+  Vec2 direction = Vec2(1, 0);
+
+  for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
+    snake[i] = Vec2(-1, -1);
+  }
+
+  for (int i = 0; i < SNAKE_INIT_LENGTH; i++) {
+    snake[i] = Vec2(8, 4);
+  }
+
+  bool lastFrameLeftButtonPressed = false;
+  bool lastFrameRightButtonPressed = false;
+
+  bool leftButtonPressed = false;
+  bool rightButtonPressed = false;
+
+  while (true) {
+    for (int n = 0; n < SNAKE_GAME_SPEED; n++) {
+      leftButtonPressed = digitalRead(leftButtonPin) == HIGH;
+      rightButtonPressed = digitalRead(rightButtonPin) == HIGH;
+  
+      if (rightButtonPressed && !lastFrameRightButtonPressed) {
+        direction = direction.rotate90();
+      }
+      
+      if (leftButtonPressed && !lastFrameLeftButtonPressed) {
+        direction = direction.rotateNegative90();
+      }
+  
+      lastFrameLeftButtonPressed = leftButtonPressed;
+      lastFrameRightButtonPressed = rightButtonPressed;
+      delay(10);
+    }
+
+    for (int i = SNAKE_MAX_LENGTH-1; i > 0; i--) {
+      if (snake[i].x == -1) {
+        continue;
+      }
+      snake[i].x = snake[i - 1].x;
+      snake[i].y = snake[i - 1].y;
+    }
+        
+    snake[0].x += direction.x;
+    snake[0].y += direction.y;
+
+    snake[0].x = (snake[0].x + 16) % 16;
+    snake[0].y = (snake[0].y + 8) % 8;
+
+    if (snake[0] == food) {
+      food.x = random(0, 15);
+      food.y = random(0, 7);
+
+      for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
+        if (snake[i].x == -1) {
+          snake[i].x = snake[i - 1].x;
+          snake[i].y = snake[i - 1].y;
+          break;
+        }
+      }
+    }
+
+    for (int i = 1; i < SNAKE_MAX_LENGTH; i++) {
+      if (snake[i] == snake[0]) {
+        return 0;
+      }
+    }
+
+    display.clearDisplay();
+
+    display.fillRect(food.x * 8 + 2, food.y * 8 + 2, 4, 4, SSD1306_WHITE);
+    display.drawRect(food.x * 8, food.y * 8, 8, 8, SSD1306_WHITE);
+
+    for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
+      display.drawRect(snake[i].x * 8, snake[i].y * 8, 8, 8, SSD1306_WHITE);
+    }
+
+    display.display();
+  }
 }
 
 int breakOut() {
