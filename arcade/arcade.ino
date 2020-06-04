@@ -4,6 +4,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#include "vec2.h"
+
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
@@ -21,33 +23,6 @@ const int rightButtonPin = 3;
 const int padY = 60;
 const int padWidth = 20;  
 
-class Block;
-
-class Vec2 {
-public:
-  int x;
-  int y;
-  Vec2(int x = 0, int y = 0) {
-    this->x = x;
-    this->y = y;
-  }
-
-  Vec2 operator+(Vec2 const &obj) {
-    Vec2 res(this->x + obj.x, this->y + obj.y);
-    return res;
-  }
-
-  bool operator==(Vec2 const &obj) {
-    return (obj.x == this->x) && (obj.y == this->y);
-  }
-
-  Vec2 rotate90() {
-    return Vec2(-(this->y), this->x);
-  }
-  Vec2 rotateNegative90() {
-    return Vec2(this->y, -(this->x));
-  }
-};
 
 class Block
 {
