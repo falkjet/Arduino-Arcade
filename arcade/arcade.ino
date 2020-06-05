@@ -4,6 +4,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#include "vec2.h"
+
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
@@ -23,31 +25,6 @@ const int padWidth = 20;
 
 int current_game;
 
-class Vec2 {
-public:
-  int x;
-  int y;
-  Vec2(int x = 0, int y = 0) {
-    this->x = x;
-    this->y = y;
-  }
-
-  Vec2 operator+(Vec2 const &obj) {
-    Vec2 res(this->x + obj.x, this->y + obj.y);
-    return res;
-  }
-
-  bool operator==(Vec2 const &obj) {
-    return (obj.x == this->x) && (obj.y == this->y);
-  }
-
-  Vec2 rotate90() {
-    return Vec2(-(this->y), this->x);
-  }
-  Vec2 rotateNegative90() {
-    return Vec2(this->y, -(this->x));
-  }
-};
 
 class Block
 {
@@ -75,7 +52,15 @@ public:
     this->damage(1);
   }
 
-  // void draw
+  bool intersects(const Block& block) {
+    if (this->x >= block.x +  block.width || block.x >= this->x + this->width) 
+        return false; 
+  
+    if (this->y >= block.y + block.height || block.y >= this->y + this->height)
+        return false; 
+  
+    return true; 
+  }
 };
 
 void getTextDim(char text[], int *width, int *height) {
@@ -209,6 +194,59 @@ int menu(String game_names[], int selected = 0) {
   }
 }
 
+int dino() {
+  const Vec2 dinoSize(22, 24);
+  float player_pos = 0;
+  float player_vel = 0;
+  int obstacle_pos = 128;
+  int score = 0;
+  
+  const float jump_height = 3.0;
+  const float gravity = 0.2;
+  const float obstacle_speed = 2;
+  float speed = 1;
+
+  const Vec2 player_size(22, 24);
+  const Vec2 obstacle_size(10, 10);
+
+  while(true) {
+    player_pos += player_vel * speed;
+    if (player_pos < 0) {
+      player_pos = 0;
+      player_vel = 0;
+    } else {
+       player_vel  -= gravity * speed;
+    }
+    obstacle_pos -= obstacle_speed*speed;
+
+    if (player_pos == 0 && digitalRead(rightButtonPin)) {
+      player_vel = jump_height;
+    }
+
+    if (obstacle_pos + obstacle_size.x < 0) {
+      score++;
+      obstacle_pos = 128;
+    }
+    
+    Block player_rect = Block(20, 50-player_size.y - player_pos, player_size.x, player_size.y);
+    Block obstacle_rect = Block(obstacle_pos, 50 - obstacle_size.y , obstacle_size.x, obstacle_size.y);
+
+    if (player_rect.intersects(obstacle_rect)) {
+      return score;
+    }
+
+    display.clearDisplay();
+    display.drawRect(obstacle_rect.x, obstacle_rect.y, obstacle_rect.width, obstacle_rect.height, SSD1306_WHITE);
+    display.drawRect(player_rect.x, player_rect.y, player_rect.width, player_rect.height, SSD1306_WHITE);
+    display.setCursor(90, 10);
+    display.print(score);
+    display.display();
+
+  }
+
+  return -1;
+}
+
 void loop() {
   String game_names[] = {"Snake", "Breakout", "Dino"};
 
@@ -223,6 +261,7 @@ void loop() {
       result = breakout();
       break;
     case 2:
+      result = dino();
       break;
   }
 
