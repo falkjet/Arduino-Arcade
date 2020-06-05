@@ -19,7 +19,9 @@ const int rightButtonPin = 3;
 
 
 const int padY = 60;
-const int padWidth = 20;  
+const int padWidth = 20;
+
+int current_game;
 
 class Vec2 {
 public:
@@ -76,6 +78,15 @@ public:
   // void draw
 };
 
+void getTextDim(char text[], int *width, int *height) {
+  int16_t  x1, y1;
+  uint16_t w, h;
+         
+  display.getTextBounds(text, 10, 0, &x1, &y1, &w, &h);
+
+  *width = (int)w;
+  *height = (int)h;
+}
 
 void setup() {
   Serial.begin(9600);
@@ -88,6 +99,8 @@ void setup() {
     Serial.println(F("display.begin failed!"));
     for(;;); // Don't proceed, loop forever
   }
+
+  current_game = 2;
   
   display.clearDisplay();
   display.display();
@@ -113,8 +126,7 @@ int waitForAnyKey() {
   return pressedButton;
 }
 
-int menu(String game_names[]) {
-  int selected = 0;
+int menu(String game_names[], int selected = 0) {
   int n_games = 3;
   
   int offset = 0;
@@ -124,8 +136,10 @@ int menu(String game_names[]) {
   bool last_right_button_state = false;
   bool left_button_state = false;
   bool last_left_button_state = false;
-  
+
+  int frame_ix = 0;
   while (true) {
+    frame_ix += 1;
     display.clearDisplay();
 
     right_button_state = digitalRead(rightButtonPin);
@@ -186,24 +200,23 @@ int menu(String game_names[]) {
 
         display.setTextSize(2); // Draw 2X-scale text
         display.setTextColor(SSD1306_WHITE);
-        display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 0);
+        display.setCursor(0, 0); // DISPLAY_WIDTH / 2 - w / 2, 0);
         display.print(game_names[selected]);
       }
     }
-
+    
     display.display();
   }
 }
 
 void loop() {
-  Serial.println("AAAAA");
-
+  
   String game_names[] = {"Snake", "Breakout", "Dino"};
 
-  int game_id = menu(game_names);
+  current_game = menu(game_names, current_game);
 
   int result;
-  switch (game_id) {
+  switch (current_game) {
     case 0:
       result = snake();
       break;
@@ -226,7 +239,7 @@ void loop() {
   int score;
 
   if (result == -1) {
-    display.println(F("You won!"));
+    display.println(F(" You won!"));
   } else {
     display.println(F("You lost!"));
 
@@ -240,16 +253,14 @@ void loop() {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
-  int16_t  x1, y1;
-  uint16_t w, h;
-
-  display.getTextBounds("Press any key", 0, 0, &x1, &y1, &w, &h);
+  int w, h;
+  getTextDim("Press any key", &w, &h);
   
   display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 50);
   display.print("Press any key");
 
   if (score != -1) {
-    display.getTextBounds("Score: 000", 0, 0, &x1, &y1, &w, &h);
+    getTextDim("Score: 000", &w, &h);
     display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 20);
     display.print("Score: ");
     display.print(score);
