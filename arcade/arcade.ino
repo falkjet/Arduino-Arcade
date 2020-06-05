@@ -210,7 +210,6 @@ int menu(String game_names[], int selected = 0) {
 }
 
 void loop() {
-  
   String game_names[] = {"Snake", "Breakout", "Dino"};
 
   current_game = menu(game_names, current_game);
