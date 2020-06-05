@@ -5,6 +5,7 @@
 #include <Adafruit_SSD1306.h>
 
 #include "vec2.h"
+#include "block.h"
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
@@ -26,42 +27,6 @@ const int padWidth = 20;
 int current_game;
 
 
-class Block
-{
-public:
-  int x;
-  int y;
-  int width;
-  int height;
-  uint8_t health;
-  Block(int x, int y, int width, int height, uint8_t health = 1) {
-    this->x = x;
-    this->y = y;
-    this->width = width;
-    this->height = height;
-    this->health = health;
-  }
-  void damage(int amount) {
-    if (amount > this->health) {
-      this->health = 0;
-    } else {
-      this->health -= amount;
-    }
-  }
-  void damage() {
-    this->damage(1);
-  }
-
-  bool intersects(const Block& block) {
-    if (this->x >= block.x +  block.width || block.x >= this->x + this->width) 
-        return false; 
-  
-    if (this->y >= block.y + block.height || block.y >= this->y + this->height)
-        return false; 
-  
-    return true; 
-  }
-};
 
 void getTextDim(char text[], int *width, int *height) {
   int16_t  x1, y1;
