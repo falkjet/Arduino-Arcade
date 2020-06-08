@@ -1,0 +1,120 @@
+[Starting] Upload sketch - arcade\arcade.ino
+[Warning] Output path is not specified. Unable to reuse previously compiled files. Upload could be slow. See README.
+Loading configuration...
+Initializing packages...
+Preparing boards...
+Verifying...
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino: In function 'int menu(int)':
+
+arcade:203:21: error: declaration of 'game_names' as multidimensional array must have bounds for all dimensions except the first
+
+   char game_names[][] = {"Snake", "Breakout", "Dino", "Tetris"};
+
+                     ^
+
+arcade:274:20: error: 'game_names' was not declared in this scope
+
+         getTextDim(game_names[selected], &w, &h);
+
+                    ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino: In function 'void loop()':
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:576:34: warning: invalid conversion from 'const char*' to 'char*' [-fpermissive]
+
+   getTextDim(any_key_text, &w, &h);
+
+                                  ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:154:6: note:   initializing argument 1 of 'void getTextDim(char*, int*, int*)'
+
+ void getTextDim(char text[], int *width, int *height) {
+
+      ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:582:36: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+
+     getTextDim("Score: 000", &w, &h);
+
+                                    ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino: In function 'int breakout()':
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:754:25: warning: passing 'const Block' as 'this' argument discards qualifiers [-fpermissive]
+
+           block.damage(1);
+
+                         ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:48:8: note:   in call to 'void Block::damage(int)'
+
+   void damage(int amount) {
+
+        ^
+
+exit status 1
+[Error] Exit with code=1
+
+[Starting] Upload sketch - arcade\arcade.ino
+[Warning] Output path is not specified. Unable to reuse previously compiled files. Upload could be slow. See README.
+Loading configuration...
+Initializing packages...
+Preparing boards...
+Verifying...
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino: In function 'int menu(int)':
+
+arcade:203:61: error: too many initializers for 'char []'
+
+   char game_names[] = {"Snake", "Breakout", "Dino", "Tetris"};
+
+                                                             ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:274:39: warning: invalid conversion from 'char' to 'char*' [-fpermissive]
+
+         getTextDim(game_names[selected], &w, &h);
+
+                                       ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:154:6: note:   initializing argument 1 of 'void getTextDim(char*, int*, int*)'
+
+ void getTextDim(char text[], int *width, int *height) {
+
+      ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino: In function 'void loop()':
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:576:34: warning: invalid conversion from 'const char*' to 'char*' [-fpermissive]
+
+   getTextDim(any_key_text, &w, &h);
+
+                                  ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:154:6: note:   initializing argument 1 of 'void getTextDim(char*, int*, int*)'
+
+ void getTextDim(char text[], int *width, int *height) {
+
+      ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:582:36: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+
+     getTextDim("Score: 000", &w, &h);
+
+                                    ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino: In function 'int breakout()':
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:754:25: warning: passing 'const Block' as 'this' argument discards qualifiers [-fpermissive]
+
+           block.damage(1);
+
+                         ^
+
+c:\Users\jotje\Desktop\Arduino-Arcade\arcade\arcade.ino:48:8: note:   in call to 'void Block::damage(int)'
+
+   void damage(int amount) {
+
+        ^
+
+exit status 1
+[Error] Exit with code=1
+
