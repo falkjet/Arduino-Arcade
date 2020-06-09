@@ -120,48 +120,35 @@ public:
 void getTextDim(char text[], int *width, int *height) {
   int16_t  x1, y1;
   uint16_t w, h;
-         
   display.getTextBounds(text, 10, 0, &x1, &y1, &w, &h);
-
   *width = (int)w;
   *height = (int)h;
 }
 
 void setup() {
   Serial.begin(9600);
-  // Serial.println("Serial started");
   pinMode(leftButtonPin, INPUT);
   pinMode(rightButtonPin, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    // Serial.println(F("display.begin failed!"));
     for(;;);
   }
 
   current_game = 0;
-  
   display.clearDisplay();
   display.display();
 }
 
 int waitForAnyKey() {
   while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
-  {
     delay(10);
-  }
-
   while (!((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH)))
-  {
     delay(10);
-  }
-
   int pressedButton = (int)(digitalRead(leftButtonPin) == HIGH);
-
   while ((digitalRead(leftButtonPin) == HIGH) || (digitalRead(rightButtonPin) == HIGH))
-  {
     delay(10);
-  }
+
   return pressedButton;
 }
 
@@ -169,9 +156,7 @@ int menu(int start_selected = 0) {
   char * game_names[] = {"Snake", "Breakout", "Dino", "Tetris"};
   
   int n_games = 4;
-
   int selected = start_selected;
-  
   int offset = 0;
   int anim_speed = MENU_ANIM_SPEED;
 
@@ -197,7 +182,6 @@ int menu(int start_selected = 0) {
         anim_speed = MENU_ANIM_SPEED * n_games;
       }
     }
-
     if (!left_button_state && last_left_button_state) {
       selected -= 1;
       offset -= 24;
@@ -207,7 +191,6 @@ int menu(int start_selected = 0) {
         anim_speed = MENU_ANIM_SPEED * n_games;
       }
     }
-
     if (left_button_state && right_button_state && (!last_left_button_state || !last_right_button_state)) {
       while (digitalRead(rightButtonPin) || digitalRead(leftButtonPin)) {
         delay(1);
@@ -278,11 +261,8 @@ int tetris() {
   bool last_right_button_state = false;
   bool left_button_state = false;
   bool last_left_button_state = false;
-
   bool rot_lock = false;
-
   float difficulty = 1;
-
   int score = 0;
   
   while (true) {
@@ -297,17 +277,14 @@ int tetris() {
     }
 
     current_block.render();
-
     display.setCursor(0, 0);
     display.setTextColor(WHITE);
     display.setTextSize(1);
     display.print(score);
-    
     display.display();
 
     right_button_state = digitalRead(rightButtonPin);
     left_button_state = digitalRead(leftButtonPin);
-
     last_right_button_state = right_button_state;
     last_left_button_state = left_button_state;
 
@@ -472,12 +449,10 @@ int dino() {
   float player_vel = 0;
   int obstacle_pos = 128;
   int score = 0;
-  
   const float jump_height = 3.0;
   const float gravity = 0.2;
   const float obstacle_speed = 2;
   float speed = 1;
-
   const Vec2 player_size(22, 24);
   const Vec2 obstacle_size(10, 10);
 
@@ -489,12 +464,11 @@ int dino() {
     } else {
        player_vel  -= gravity * speed;
     }
+    
     obstacle_pos -= obstacle_speed*speed;
-
     if (player_pos == 0 && digitalRead(rightButtonPin)) {
       player_vel = jump_height;
     }
-
     if (obstacle_pos + obstacle_size.x < 0) {
       score++;
       obstacle_pos = 128;
@@ -540,7 +514,6 @@ void loop() {
   }
 
   display.clearDisplay();
-  
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(10, 0);
@@ -549,7 +522,6 @@ void loop() {
     display.println(F(" You won!"));
   } else {
     display.println(F("You lost!"));
-
     if (result != 0) {
       int w, h;
       display.setTextSize(1);
@@ -562,40 +534,32 @@ void loop() {
 
   display.setTextSize(1);
   display.setTextColor(WHITE);
-
   int w, h;
   getTextDim("Press any key", &w, &h);
-  
   display.setCursor(DISPLAY_WIDTH / 2 - w / 2, 50);
   display.print("Press any key");
   display.display();
 
   delay(500);
-
   waitForAnyKey();
 }
 
 int snake() {
   Vec2 food = Vec2(6, 4);
-
   Vec2 snake[SNAKE_MAX_LENGTH];
-
   Vec2 direction = Vec2(1, 0);
 
   for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
     snake[i] = Vec2(-1, -1);
   }
-
   for (int i = 0; i < SNAKE_INIT_LENGTH; i++) {
     snake[i] = Vec2(8, 4);
   }
 
   bool lastFrameLeftButtonPressed = false;
   bool lastFrameRightButtonPressed = false;
-
   bool leftButtonPressed = false;
   bool rightButtonPressed = false;
-
   int food_eaten = 0;
 
   while (true) {
@@ -606,7 +570,6 @@ int snake() {
       if (rightButtonPressed && !lastFrameRightButtonPressed) {
         direction = direction.rotate90();
       }
-      
       if (leftButtonPressed && !lastFrameLeftButtonPressed) {
         direction = direction.rotateNegative90();
       }
@@ -620,7 +583,6 @@ int snake() {
       if (snake[i].x == -1) {
         continue;
       }
-
       snake[i].x = snake[i - 1].x;
       snake[i].y = snake[i - 1].y;
     }
@@ -674,23 +636,15 @@ int snake() {
 int breakout() {
   display.clearDisplay();
   display.display();
-
   Block blocks[] = {
     Block(0, 0, 16, 8, 1), Block(16, 0, 16, 8, 1), Block(32, 0, 16, 8, 1), Block(16*3, 0, 16, 8, 1), Block(64, 0, 16, 8, 1), Block(16*5, 0, 16, 8, 1), Block(16*6, 0, 16, 8, 1), Block(16*7, 0, 16, 8, 1),
     Block(0, 8, 16, 8, 1), Block(16, 8, 16, 8, 1), Block(32, 8, 16, 8, 1), Block(16*3, 8, 16, 8, 1), Block(64, 8, 16, 8, 1), Block(16*5, 8, 16, 8, 1), Block(16*6, 8, 16, 8, 1), Block(16*7, 8, 16, 8, 1)
   };
-
   int padPos = 63;
-  // // draw blocks
-  // for (Block block: blocks) {
-  //   display.drawRect(block.x+1, block.y+1 , block.width-2, block.height-2, WHITE);
-  // }
-
   Vec2 ballPos = Vec2(63, 50);
   Vec2 ballVel = Vec2(1, -2);
   
-  while (true) //game loop
-  {
+  while (true) { //game loop
     display.clearDisplay();
     int aliveBlocks = 0;
     for (Block block: blocks) {
@@ -700,44 +654,27 @@ int breakout() {
     }
 
     display.drawCircle(ballPos.x, ballPos.y, 2, WHITE);
-
     display.drawLine(padPos, padY, padPos + padWidth, padY, WHITE);
-
     ballPos = ballPos + ballVel;
-
-    // if (ballPos.y > 60) {
-    //   ballVel.y = -abs(ballVel.y);
-    //   Serial.println("UP");
-    // }
     
     if (ballPos.y < 4) {
       ballVel.y = abs(ballVel.y);
-      // Serial.println("DOWN");
     }
     if (ballPos.x > 126) {
       ballVel.x = -abs(ballVel.x);
-      // Serial.println("UP");
     }
-    
     if (ballPos.x < 4) {
       ballVel.x = abs(ballVel.x);
-      // Serial.println("DOWN");
     }
 
-    //ballPos.x += ballVel.x; ballPos.y += ballVel.y;
-
     int numBlocksAlive = 0;
-
     for (const Block& block: blocks) {
-      // Serial.print(block.health); Serial.println(0);
       if (block.health != 0) {
         numBlocksAlive++;
-        // Serial.print(block.health); Serial.println(0);
         int inside_bottom = block.y + block.height + 2 - ballPos.y;
         int inside_top = block.height - inside_bottom + 4;
         int inside_right = block.x + block.width + 2 - ballPos.x;
         int inside_left = block.width - inside_right + 4;
-        // int inside_left = 
         if (inside_bottom > 0 && inside_right > 0 && inside_left > 0 && inside_top > 0) {
           block.damage(1);
           if (min(inside_top, inside_top) > min(inside_left, inside_right)){
@@ -755,7 +692,6 @@ int breakout() {
             }
           }
         }
-        // Serial.println("BLOCK");
       }
     }
 
@@ -763,7 +699,6 @@ int breakout() {
       Serial.println("you won");
       return -1;
     }
-
 
     if (ballPos.y + 4 > padY) {
       if (ballPos.x > padPos - 2 && ballPos.x < 2+ padPos + padWidth) {
@@ -778,7 +713,6 @@ int breakout() {
     }
 
     int buttonState = digitalRead(leftButtonPin);
-
     digitalWrite(LED_BUILTIN, buttonState == HIGH);
 
     if (buttonState == HIGH) {
@@ -786,19 +720,13 @@ int breakout() {
     }
 
     buttonState = digitalRead(rightButtonPin);
-
     digitalWrite(LED_BUILTIN, buttonState == HIGH);
 
     if (buttonState == HIGH) {
       padPos += 3;
     }
 
-
-    // Serial.print("("); Serial.print(ballPos.x); Serial.print(", "); Serial.print(ballPos.y); Serial.print("), ");
-    // Serial.print("("); Serial.print(ballVel.x); Serial.print(", "); Serial.print(ballVel.y); Serial.println(")");
     display.display();
   }
-
-
   display.display();
 }
