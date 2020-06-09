@@ -8,6 +8,8 @@
 #include "tetrisblock.h"
 #include "breakout.h"
 #include "buttons.h"
+#include "dino.h"
+#include "snake.h"
 
 #define WHITE SSD1306_WHITE
 
@@ -18,10 +20,6 @@
 
 #define TETRIS_DELAY 500
 #define TETRIS_SCALE 4
-
-#define SNAKE_MAX_LENGTH 40
-#define SNAKE_INIT_LENGTH 3
-#define SNAKE_GAME_SPEED 20
 
 #define OLED_RESET 4
 
@@ -345,56 +343,6 @@ int tetris() {
   return -1;
 }
 
-int dino() {
-  const Vec2 dinoSize(22, 24);
-  float player_pos = 0;
-  float player_vel = 0;
-  int obstacle_pos = 128;
-  int score = 0;
-  const float jump_height = 3.0;
-  const float gravity = 0.2;
-  const float obstacle_speed = 2;
-  float speed = 1;
-  const Vec2 player_size(22, 24);
-  const Vec2 obstacle_size(10, 10);
-
-  while(true) {
-    player_pos += player_vel * speed;
-    if (player_pos < 0) {
-      player_pos = 0;
-      player_vel = 0;
-    } else {
-       player_vel  -= gravity * speed;
-    }
-    
-    obstacle_pos -= obstacle_speed*speed;
-    if (player_pos == 0 && digitalRead(rightButtonPin)) {
-      player_vel = jump_height;
-    }
-    if (obstacle_pos + obstacle_size.x < 0) {
-      score++;
-      obstacle_pos = 128;
-    }
-    
-    Block player_rect = Block(20, 50-player_size.y - player_pos, player_size.x, player_size.y);
-    Block obstacle_rect = Block(obstacle_pos, 50 - obstacle_size.y , obstacle_size.x, obstacle_size.y);
-
-    if (player_rect.intersects(obstacle_rect)) {
-      return score;
-    }
-
-    display.clearDisplay();
-    display.drawRect(obstacle_rect.x, obstacle_rect.y, obstacle_rect.width, obstacle_rect.height, WHITE);
-    display.drawRect(player_rect.x, player_rect.y, player_rect.width, player_rect.height, WHITE);
-    display.setCursor(90, 10);
-    display.print(score);
-    display.display();
-
-  }
-
-  return -1;
-}
-
 void loop() {
   Serial.println("Hello, world");
   current_game = menu(current_game);
@@ -402,13 +350,13 @@ void loop() {
   int result;
   switch (current_game) {
     case 0:
-      result = snake();
+      result = snake(&display);
       break;
     case 1:
       result = breakout(&display);
       break;
     case 2:
-      result = dino();
+      result = dino(&display);
       break;
     case 3:
       result = tetris();
@@ -445,93 +393,3 @@ void loop() {
   delay(500);
   waitForAnyKey();
 }
-
-int snake() {
-  Vec2 food = Vec2(6, 4);
-  Vec2 snake[SNAKE_MAX_LENGTH];
-  Vec2 direction = Vec2(1, 0);
-
-  for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
-    snake[i] = Vec2(-1, -1);
-  }
-  for (int i = 0; i < SNAKE_INIT_LENGTH; i++) {
-    snake[i] = Vec2(8, 4);
-  }
-
-  bool lastFrameLeftButtonPressed = false;
-  bool lastFrameRightButtonPressed = false;
-  bool leftButtonPressed = false;
-  bool rightButtonPressed = false;
-  int food_eaten = 0;
-
-  while (true) {
-    for (int n = 0; n < SNAKE_GAME_SPEED; n++) {
-      leftButtonPressed = digitalRead(leftButtonPin) == HIGH;
-      rightButtonPressed = digitalRead(rightButtonPin) == HIGH;
-  
-      if (rightButtonPressed && !lastFrameRightButtonPressed) {
-        direction = direction.rotate90();
-      }
-      if (leftButtonPressed && !lastFrameLeftButtonPressed) {
-        direction = direction.rotateNegative90();
-      }
-  
-      lastFrameLeftButtonPressed = leftButtonPressed;
-      lastFrameRightButtonPressed = rightButtonPressed;
-      delay(10);
-    }
-
-    for (int i = SNAKE_MAX_LENGTH-1; i > 0; i--) {
-      if (snake[i].x == -1) {
-        continue;
-      }
-      snake[i].x = snake[i - 1].x;
-      snake[i].y = snake[i - 1].y;
-    }
-    
-        
-    snake[0].x += direction.x;
-    snake[0].y += direction.y;
-
-    snake[0].x = (snake[0].x + 16) % 16;
-    snake[0].y = (snake[0].y + 8) % 8;
-
-    for (int v = 0; v < SNAKE_MAX_LENGTH; v++) {
-      if (snake[v] == food) {
-        food_eaten += 1;
-        food.x = random(0, 15);
-        food.y = random(0, 7);
-  
-        for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
-          if (snake[i].x == -1) {
-            if (i == SNAKE_MAX_LENGTH - 1) {
-              return -1;
-            }
-
-            snake[i].x = snake[i - 1].x;
-            snake[i].y = snake[i - 1].y;
-            break;
-          }
-        }
-      }
-    }
-
-    for (int i = 1; i < SNAKE_MAX_LENGTH; i++) {
-      if (snake[i] == snake[0]) {
-        return food_eaten;
-      }
-    }
-
-    display.clearDisplay();
-
-    display.fillRect(food.x * 8 + 2, food.y * 8 + 2, 4, 4, WHITE);
-    display.drawRect(food.x * 8, food.y * 8, 8, 8, WHITE);
-
-    for (int i = 0; i < SNAKE_MAX_LENGTH; i++) {
-      display.drawRect(snake[i].x * 8, snake[i].y * 8, 8, 8, WHITE);
-    }
-
-    display.display();
-  }
-}
-
