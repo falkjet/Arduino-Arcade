@@ -58,9 +58,28 @@ TetrisBlock::TetrisBlock() {
   this->rotate((int)floor(random(4)));
 }
 
-void TetrisBlock::render(Adafruit_SSD1306 *display){
-  for (int i = 0; i < 4; i++) {
-    display->drawRect((this->x + this->blocks[i].x) * 8, (this->y + this->blocks[i].y) * 8, 8, 8, WHITE);
+void TetrisBlock::render(Adafruit_SSD1306 *display, int override_x, int override_y, int size, bool center){
+  if (override_x == 0 && override_y == 0) {
+      for (int i = 0; i < 4; i++) {
+        display->drawRect((this->x + this->blocks[i].x) * size, (this->y + this->blocks[i].y) * size, size, size, WHITE);
+      }
+  } else {
+    if (center) {
+      int min_x = 10, max_x = 0;
+      for (int i = 0; i < 4; i++) {
+        if (this->blocks[i].x < min_x) {
+          min_x = this->blocks[i].x;
+        }
+        if (this->blocks[i].x > max_x) {
+          max_x = this->blocks[i].x;
+        }
+      }
+
+      override_x -= floor((max_x - min_x) * size / 2);
+    }
+    for (int i = 0; i < 4; i++) {
+      display->drawRect((this->blocks[i].x) * size + override_x, (this->blocks[i].y) * size + override_y, size, size, WHITE);
+    }
   }
 }
 
