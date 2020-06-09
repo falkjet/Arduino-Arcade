@@ -20,6 +20,7 @@
 
 #define TETRIS_DELAY 500
 #define TETRIS_SCALE 4
+#define TETRIS_BOUNDS 3
 
 #define OLED_RESET 4
 
@@ -148,6 +149,8 @@ int menu(int start_selected = 0) {
 
 int tetris() {
   TetrisBlock current_block = TetrisBlock();
+  TetrisBlock next_block = TetrisBlock();
+  
   int ms_left = TETRIS_DELAY;
 
   bool taken_spaces[16][8];
@@ -162,7 +165,9 @@ int tetris() {
   bool left_button_state = false;
   bool last_left_button_state = false;
   bool rot_lock = false;
-  float difficulty = 1;
+
+  float difficulty = 0.5;
+  
   int score = 0;
   
   while (true) {
@@ -180,7 +185,17 @@ int tetris() {
     display.setCursor(0, 0);
     display.setTextColor(WHITE);
     display.setTextSize(1);
+
+    int w, h;
+    getTextDim(score, &w, &h);
+       
+    display.setCursor(DISPLAY_WIDTH - TETRIS_BOUNDS * 4 - w / 2, 12);
     display.print(score);
+    display.drawRect(0, 0, TETRIS_BOUNDS * 8, DISPLAY_HEIGHT, WHITE);
+    display.drawRect(DISPLAY_WIDTH - (TETRIS_BOUNDS * 8), 0, TETRIS_BOUNDS * 8, DISPLAY_HEIGHT, WHITE);
+
+    next_block.render(&display, 14, 12, 4, true);
+
     display.display();
 
     right_button_state = digitalRead(rightButtonPin);
@@ -189,8 +204,8 @@ int tetris() {
     last_left_button_state = left_button_state;
 
     while (ms_left > 0) {
-      delay(10);
-      ms_left -= 10;
+      delay(5);
+      ms_left -= 5;
 
       right_button_state = digitalRead(rightButtonPin);
       left_button_state = digitalRead(leftButtonPin);
@@ -224,12 +239,16 @@ int tetris() {
       for (int v = 0; v < 4; v++) {
         if (current_block.blocks[v].y + current_block.y > 7) {
           has_collided = true;
+          Serial.println("outbound");
           break;
         }
 
-        if (taken_spaces[current_block.blocks[v].x + current_block.x][current_block.blocks[v].y + current_block.y]) {
-          has_collided = true;
-          break;
+        if (current_block.blocks[v].x + current_block.x >= 0 && current_block.blocks[v].y + current_block.y >= 0) {
+          if (taken_spaces[current_block.blocks[v].x + current_block.x][current_block.blocks[v].y + current_block.y]) {
+            has_collided = true;
+            Serial.println("inbound");
+            break;
+          }
         }
       }
 
@@ -242,9 +261,13 @@ int tetris() {
           int subblock_y = current_block.blocks[i].y + current_block.y;
 
           taken_spaces[subblock_x][subblock_y] = true;
+        }
 
+        for (int i = 0; i < 4; i++) {
+          int subblock_y = current_block.blocks[i].y + current_block.y;
+          
           bool all_taken = true;
-          for (int x = 0; x < 16; x++) {
+          for (int x = TETRIS_BOUNDS; x < 16 - TETRIS_BOUNDS; x++) {
             if (!taken_spaces[x][subblock_y]) {
               all_taken = false;
               break;
@@ -266,7 +289,8 @@ int tetris() {
           }
         }
   
-        current_block = TetrisBlock();
+        current_block = next_block;
+        next_block = TetrisBlock();
         for (int i = 0; i < 4; i++) {
           int subblock_x = current_block.blocks[i].x + current_block.x;
           int subblock_y = current_block.blocks[i].y + current_block.y;
@@ -276,13 +300,17 @@ int tetris() {
           }
 
           if (taken_spaces[subblock_x][subblock_y]) {
+            Serial.print(subblock_x);
+            Serial.print(" ");
+            Serial.println(subblock_y);
+      
             return score;
           }
         }
       }
 
       if (amount_cleared > 0) {
-        difficulty += .5;
+        difficulty += .2;
       }
       score += amount_cleared * amount_cleared;
 
@@ -300,7 +328,10 @@ int tetris() {
       current_block.rotate();
       rot_lock = true;
       for (int v = 0; v < 4; v++) {
-        if (taken_spaces[current_block.blocks[v].x + current_block.x][current_block.blocks[v].y + current_block.y]) {
+        bool subblock_taken = taken_spaces[current_block.blocks[v].x + current_block.x][current_block.blocks[v].y + current_block.y];
+        bool subblock_out_of_bounds = (current_block.blocks[v].x + current_block.x < TETRIS_BOUNDS) || (current_block.blocks[v].x + current_block.x >= 16 - TETRIS_BOUNDS);
+        
+        if (subblock_taken || subblock_out_of_bounds) {
           current_block.rotate(3);
           rot_lock = false;
           break;
@@ -317,7 +348,7 @@ int tetris() {
             current_block.move(-1);
             break;
           }
-          if (current_block.blocks[v].x + current_block.x > 15) {
+          if (current_block.blocks[v].x + current_block.x >= 16 - TETRIS_BOUNDS) {
             current_block.move(-1);
           }
         }
@@ -331,7 +362,7 @@ int tetris() {
             break;
           }
 
-          if (current_block.blocks[v].x + current_block.x < 0) {
+          if (current_block.blocks[v].x + current_block.x < TETRIS_BOUNDS) {
             current_block.move(1);
             break;
           }
@@ -344,7 +375,6 @@ int tetris() {
 }
 
 void loop() {
-  Serial.println("Hello, world");
   current_game = menu(current_game);
 
   int result;
