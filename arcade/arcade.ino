@@ -5,6 +5,7 @@
 
 #include "vec2.h"
 #include "block.h"
+#include "tetrisblock.h"
 
 #define WHITE SSD1306_WHITE
 
@@ -32,90 +33,6 @@ const int padWidth = 20;
 
 int current_game;
 
-
-class TetrisBlock {
-public:
-  int x, y;
-  int length;
-  Vec2 blocks[4];
-  
-  TetrisBlock() {
-    x = 7;
-    y = 0;
-    
-    switch ((int)floor(random(7))) {
-      case 0: // I-block
-        this->length = 4;
-        this->blocks[0] = Vec2(-1, 0);
-        this->blocks[1] = Vec2(0, 0);
-        this->blocks[2] = Vec2(1, 0);
-        this->blocks[3] = Vec2(2, 0);
-        break;
-      case 1: // J-block
-        this->length = 3;
-        this->blocks[0] = Vec2(-1, -1);
-        this->blocks[1] = Vec2(-1, 0);
-        this->blocks[2] = Vec2(0, 0);
-        this->blocks[3] = Vec2(1, 0);
-        break;
-      case 2: // L-block
-        this->length = 3;
-        this->blocks[0] = Vec2(-1, 0);
-        this->blocks[1] = Vec2(0, 0);
-        this->blocks[2] = Vec2(1, 0);
-        this->blocks[3] = Vec2(1, -1);
-        break;
-      case 3: // O-block
-        this->length = 2;
-        this->blocks[0] = Vec2(0, 0);
-        this->blocks[1] = Vec2(1, 0);
-        this->blocks[2] = Vec2(0, 1);
-        this->blocks[3] = Vec2(1, 1);
-        break;
-      case 4: // S-block
-        this->length = 3;
-        this->blocks[0] = Vec2(-1, 0);
-        this->blocks[1] = Vec2(0, 0);
-        this->blocks[2] = Vec2(0, -1);
-        this->blocks[3] = Vec2(1, -1);
-        break;
-      case 5: // T-block
-        this->length = 3;
-        this->blocks[0] = Vec2(-1, 0);
-        this->blocks[1] = Vec2(0, 0);
-        this->blocks[2] = Vec2(0, -1);
-        this->blocks[3] = Vec2(1, 0);
-        break;
-      case 6: // Z-block
-        this->length = 3;
-        this->blocks[0] = Vec2(-1, -1);
-        this->blocks[1] = Vec2(0, -1);
-        this->blocks[2] = Vec2(0, 0);
-        this->blocks[3] = Vec2(1, 0);
-        break;
-    }
-
-    this->rotate((int)floor(random(4)));
-  }
-
-  void render() {
-    for (int i = 0; i < 4; i++) {
-      display.drawRect((this->x + this->blocks[i].x) * 8, (this->y + this->blocks[i].y) * 8, 8, 8, WHITE);
-    }
-  }
-
-  void move(int x) {
-    this->x += x;
-  }
-
-  void rotate(int t = 1, bool force = false) {
-    for (int v = 0; v < t; v++) {
-      for (int i = 0; i < 4; i++) {
-        this->blocks[i] = this->blocks[i].rotate90();
-      }
-    }
-  }
-};
 
 void getTextDim(char text[], int *width, int *height) {
   int16_t  x1, y1;
@@ -276,7 +193,7 @@ int tetris() {
       }
     }
 
-    current_block.render();
+    current_block.render(&display);
     display.setCursor(0, 0);
     display.setTextColor(WHITE);
     display.setTextSize(1);
