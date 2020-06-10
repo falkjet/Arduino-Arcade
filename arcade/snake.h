@@ -3,11 +3,10 @@
 
 #include <Adafruit_SSD1306.h>
 
-
 #define SNAKE_MAX_LENGTH 40
 #define SNAKE_INIT_LENGTH 3
 #define SNAKE_GAME_SPEED 20
 
-int snake(Adafruit_SSD1306 *display);
+int snake(Adafruit_SSD1306 *display, bool easter_egg=false);
 
 #endif /* SNAKE_H */

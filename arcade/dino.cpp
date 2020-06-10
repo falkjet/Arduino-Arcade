@@ -3,7 +3,7 @@
 #include "block.h"
 #include "vec2.h"
 
-int dino(Adafruit_SSD1306 *display) {
+int dino(Adafruit_SSD1306 *display, bool easter_egg) {
   const Vec2 dinoSize(22, 24);
   float player_pos = 0;
   float player_vel = 0;
@@ -15,6 +15,10 @@ int dino(Adafruit_SSD1306 *display) {
   float speed = 1;
   const Vec2 player_size(22, 24);
   const Vec2 obstacle_size(10, 10);
+
+  if (easter_egg) {
+    speed = 3;
+  }
 
   while(true) {
     player_pos += player_vel * speed;

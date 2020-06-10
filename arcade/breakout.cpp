@@ -1,6 +1,6 @@
 #include "breakout.h"
 
-int breakout(Adafruit_SSD1306 *display) {
+int breakout(Adafruit_SSD1306 *display, bool easter_egg) {
   display->clearDisplay();
   display->display();
   Block blocks[] = {
@@ -44,6 +44,9 @@ int breakout(Adafruit_SSD1306 *display) {
         int inside_left = block.width - inside_right + 4;
         if (inside_bottom > 0 && inside_right > 0 && inside_left > 0 && inside_top > 0) {
           block.damage(1);
+          if (easter_egg) {
+            continue;
+          }
           if (min(inside_top, inside_top) > min(inside_left, inside_right)){
             if (inside_top < inside_top) {
               ballVel.y = -abs(ballVel.y);

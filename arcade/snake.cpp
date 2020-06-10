@@ -2,7 +2,7 @@
 #include "vec2.h"
 #include "buttons.h"
 
-int snake(Adafruit_SSD1306 *display) {
+int snake(Adafruit_SSD1306 *display, bool easter_egg) {
   Vec2 food = Vec2(6, 4);
   Vec2 snake[SNAKE_MAX_LENGTH];
   Vec2 direction = Vec2(1, 0);
@@ -35,6 +35,9 @@ int snake(Adafruit_SSD1306 *display) {
       lastFrameLeftButtonPressed = leftButtonPressed;
       lastFrameRightButtonPressed = rightButtonPressed;
       delay(10);
+      if (easter_egg) {
+        break;
+      }
     }
 
     for (int i = SNAKE_MAX_LENGTH-1; i > 0; i--) {
@@ -90,4 +93,3 @@ int snake(Adafruit_SSD1306 *display) {
     display->display();
   }
 }
-

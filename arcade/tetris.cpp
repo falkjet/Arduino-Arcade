@@ -2,7 +2,7 @@
 #include  "tetrisblock.h"
 #include  "buttons.h"
 
-int tetris(Adafruit_SSD1306 *display) {
+int tetris(Adafruit_SSD1306 *display, bool easter_egg) {
   TetrisBlock current_block = TetrisBlock();
   TetrisBlock next_block = TetrisBlock();
   
@@ -22,6 +22,9 @@ int tetris(Adafruit_SSD1306 *display) {
   bool rot_lock = false;
 
   float difficulty = 0.5;
+  if (easter_egg) {
+    difficulty = 3;
+  }
   
   int score = 0;
   

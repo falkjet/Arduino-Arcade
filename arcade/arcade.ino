@@ -24,6 +24,8 @@
 
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 
+int menu_round = 0;
+bool easter_egg = false;
 int current_game;
 
 void setup() {
@@ -102,6 +104,17 @@ int menu(int start_selected = 0) {
         selected = 0;
         offset = -n_games * 24;
         anim_speed = MENU_ANIM_SPEED * n_games;
+        menu_round += 1;
+        if (menu_round >= 3) {
+          menu_round = 0;
+          easter_egg = !easter_egg;
+          display.invertDisplay(true);
+          display.display();
+          delay(250);
+          display.invertDisplay(false);
+          display.display();
+          offset = 0;
+        }
       }
     }
     if (!left_button_state && last_left_button_state) {
@@ -206,16 +219,16 @@ void loop() {
   int result;
   switch (current_game) {
     case 0:
-      result = snake(&display);
+      result = snake(&display, easter_egg);
       break;
     case 1:
-      result = breakout(&display);
+      result = breakout(&display, easter_egg);
       break;
     case 2:
-      result = dino(&display);
+      result = dino(&display, easter_egg);
       break;
     case 3:
-      result = tetris(&display);
+      result = tetris(&display, easter_egg);
       break;
   }
 

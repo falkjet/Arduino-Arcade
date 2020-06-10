@@ -13,6 +13,6 @@ const int padY = 60;
 const int padWidth = 20;
 
 
-int breakout(Adafruit_SSD1306 *display);
+int breakout(Adafruit_SSD1306 *display, bool easter_egg=false);
 
 #endif /* BREAKOUT_H */
