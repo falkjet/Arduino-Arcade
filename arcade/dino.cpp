@@ -11,7 +11,7 @@ int dino(Adafruit_SSD1306 *display, bool easter_egg) {
   int score = 0;
   const float jump_height = 3.0;
   const float gravity = 0.2;
-  const float obstacle_speed = 2;
+  float obstacle_speed = 2;
   float speed = 1;
   const Vec2 player_size(22, 24);
   const Vec2 obstacle_size(10, 10);
@@ -35,7 +35,8 @@ int dino(Adafruit_SSD1306 *display, bool easter_egg) {
     }
     if (obstacle_pos + obstacle_size.x < 0) {
       score++;
-      obstacle_pos = 128;
+      obstacle_pos = 64 + random(64, 128);
+      obstacle_speed += 0.1;
     }
     
     Block player_rect = Block(20, 50-player_size.y - player_pos, player_size.x, player_size.y);
