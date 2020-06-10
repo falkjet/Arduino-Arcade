@@ -63,7 +63,6 @@ int breakout(Adafruit_SSD1306 *display) {
     }
 
     if (numBlocksAlive == 0) {
-      Serial.println("you won");
       return -1;
     }
 
@@ -75,7 +74,6 @@ int breakout(Adafruit_SSD1306 *display) {
     }
 
     if (ballPos.y > padY +4) {
-      Serial.println("you lost");
       return (sizeof(blocks) / sizeof(blocks[0])) - numBlocksAlive;
     }
 
